@@ -18,15 +18,15 @@ def render(topic):
         c1 = st.sidebar.slider('Zisk ze Stolu (Kč):', 100, 1000, 500, 50)
         c2 = st.sidebar.slider('Zisk ze Židle (Kč):', 100, 1000, 400, 50)
         
-        mat_cap = st.sidebar.slider('Sklad dřeva (ks):', 50, 500, 240, 10)
-        mat_x = st.sidebar.slider('Dřevo na 1 Stůl (ks):', 1, 10, 4, 1)
-        mat_y = st.sidebar.slider('Dřevo na 1 Židli (ks):', 1, 10, 2, 1)
+        mat_cap = st.sidebar.slider('Sklad dřeva (ks):', 10, 200, 120, 10)
+        mat_x = st.sidebar.slider('Dřevo na 1 Stůl (ks):', 1, 10, 2, 1)
+        mat_y = st.sidebar.slider('Dřevo na 1 Židli (ks):', 1, 10, 1, 1)
         
-        lab_cap = st.sidebar.slider('Čas zaměstnanců (hod):', 50, 500, 100, 10)
+        lab_cap = st.sidebar.slider('Čas zaměstnanců (hod):', 10, 200, 100, 10)
         lab_x = st.sidebar.slider('Hodin na 1 Stůl:', 1, 10, 1, 1)
         lab_y = st.sidebar.slider('Hodin na 1 Židli:', 1, 10, 2, 1)
         
-        x = np.linspace(0, 500, 400)
+        x = np.linspace(0, 250, 400) # Výpočtový x-range raději širší
         
         y1 = (mat_cap - mat_x * x) / mat_y
         y2 = (lab_cap - lab_x * x) / lab_y
@@ -74,8 +74,8 @@ def render(topic):
         
         ax.plot(opt_x, opt_y, 'o', color='gold', markersize=12, markeredgecolor='black', label='OPTIMUM')
         
-        ax.set_xlim(0, 500)
-        ax.set_ylim(0, 500)
+        ax.set_xlim(0, 100)
+        ax.set_ylim(0, 100)
         ax.set_xlabel('Počet vyrobených Stolů')
         ax.set_ylabel('Počet vyrobených Židlí')
         ax.set_title(f'Optimální produkce: {opt_x:.1f} Stolů, {opt_y:.1f} Židlí\nMaximální Zisk = {max_z:.0f} Kč', fontweight='bold', fontsize=14)

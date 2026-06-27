@@ -27,7 +27,7 @@ def _plot_dist(x, y, title, color, label=None, xlim=None, ylim=None, figsize=(10
     plt.close(fig)
 
 # --- Založení navigace v Sidebar ---
-st.title("Statistika vizuálně 📈")
+st.title("Statistika vizuálně")
 st.sidebar.header("Navigace a nastavení")
 
 topics = [

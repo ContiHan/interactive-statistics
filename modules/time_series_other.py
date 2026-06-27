@@ -124,3 +124,52 @@ def render(topic):
         st.pyplot(fig)
         plt.close(fig)
 
+    elif topic == 'Markovské řetězce':
+        st.info("""
+        **Markovské řetězce (Predikce stavů)**
+        Nástroj pro předpovídání budoucnosti v systémech, kde další krok závisí pouze na současném stavu (a ne na daleké historii).
+        
+        *   **Příklad ze života:** Předpověď počasí. Pokud je dnes **Slunečno**, je velká šance (např. 80 %), že bude slunečno i zítra. Pokud dnes **Prší**, je 60% šance, že bude pršet i zítra. 
+        *   **Steady State (Rovnovážný stav):** Bez ohledu na to, jaké počasí je v "Den 0", po několika dnech se pravděpodobnosti ustálí na fixních hodnotách. Na grafu uvidíte, jak obě čáry rychle najdou svou rovnováhu a přestanou se vlnit.
+        """)
+        
+        st_sun = st.sidebar.slider('Šance: Slunce ➡️ Slunce (%)', 0, 100, 80, 5) / 100
+        st_rain = st.sidebar.slider('Šance: Déšť ➡️ Déšť (%)', 0, 100, 60, 5) / 100
+        
+        # Transition matrix P = [[P(S->S), P(S->R)], [P(R->S), P(R->R)]]
+        P = np.array([
+            [st_sun, 1 - st_sun],
+            [1 - st_rain, st_rain]
+        ])
+        
+        start_state = st.sidebar.radio("Jaké je počasí DNES (Den 0):", ["Slunečno", "Prší"])
+        
+        if start_state == "Slunečno":
+            state = np.array([1.0, 0.0])
+        else:
+            state = np.array([0.0, 1.0])
+            
+        n_steps = 20
+        history_sun = [state[0]]
+        history_rain = [state[1]]
+        
+        for _ in range(n_steps):
+            state = np.dot(state, P)
+            history_sun.append(state[0])
+            history_rain.append(state[1])
+            
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
+        ax.plot(range(n_steps + 1), history_sun, color='goldenrod', lw=3, label='Pravděpodobnost: Slunečno', marker='o')
+        ax.plot(range(n_steps + 1), history_rain, color='steelblue', lw=3, label='Pravděpodobnost: Prší', marker='o')
+        
+        ax.set_ylim(-0.05, 1.05)
+        ax.set_xlim(0, n_steps)
+        ax.set_xlabel('Počet dnů do budoucnosti')
+        ax.set_ylabel('Pravděpodobnost (0.0 až 1.0)')
+        ax.set_title(f'Markovský proces: Vývoj počasí v čase\nRovnovážný stav (Slunce: {history_sun[-1]*100:.1f} %, Déšť: {history_rain[-1]*100:.1f} %)', fontweight='bold')
+        ax.legend(loc='center right')
+        
+        st.pyplot(fig)
+        plt.close(fig)
+

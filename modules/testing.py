@@ -193,3 +193,46 @@ def render(topic):
         st.pyplot(fig)
         plt.close(fig)
 
+    elif topic == 'Neparametrické testy (Mann-Whitney)':
+        st.info("""
+        **Mann-Whitney U test (Neparametrický)**
+        Co dělat, když data nemají krásný tvar zvonu (normální rozdělení) nebo obsahují extrémní výkyvy (outliery)? Klasický t-test by selhal.
+        
+        *   **Příklad ze života:** Porovnáváme platy ve Firmě A a Firmě B. V obou berou lidé zhruba stejně (kolem 40 tisíc). Ale do Firmy B najednou nastoupí miliardář (extrém). Klasický průměr Firmy B nesmyslně vyletí. T-test by chybně ohlásil, že se platy ve firmách drasticky liší.
+        *   **Řešení:** Mann-Whitney U test zahodí reálné částky a nahradí je **Pořadím** (Ranky). Miliardář dostane prostě pořadí "Nejbohatší" (nejvyšší číslo ranku), takže velikost jeho majetku test nezkreslí.
+        *   **Grafy:** Všimněte si, že i když je vlevo plat miliardáře mimo graf, T-test to rozhodí. Graf vpravo ukazuje, jak rankování outliera zneškodní.
+        """)
+        
+        add_outlier = st.sidebar.checkbox('Přidat miliardáře (Outliera) do Skupiny B', value=True)
+        
+        np.random.seed(42)
+        group_a = np.random.lognormal(mean=10.5, sigma=0.5, size=50) # Běžné platy
+        group_b = np.random.lognormal(mean=10.5, sigma=0.5, size=50)
+        
+        if add_outlier:
+            group_b[-1] = 50000000 # Miliardář
+            
+        t_stat, t_pval = stats.ttest_ind(group_a, group_b)
+        u_stat, u_pval = stats.mannwhitneyu(group_a, group_b)
+        
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+        
+        # Obyčejná data (Log scale for visualization since outlier is huge)
+        ax1.boxplot([group_a, group_b], labels=['Skupina A', 'Skupina B'])
+        ax1.set_title(f'Původní data (Log. měřítko)\nKlasický T-test p-hod. = {t_pval:.4f}')
+        ax1.set_ylabel('Plat (Kč)')
+        ax1.set_yscale('log')
+        
+        # Rankovaná data
+        all_data = np.concatenate([group_a, group_b])
+        ranks = stats.rankdata(all_data)
+        ranks_a = ranks[:50]
+        ranks_b = ranks[50:]
+        
+        ax2.boxplot([ranks_a, ranks_b], labels=['Skupina A', 'Skupina B'])
+        ax2.set_title(f'Data převedená na Pořadí (Ranky)\nMann-Whitney p-hod. = {u_pval:.4f}')
+        ax2.set_ylabel('Pořadí (1 = nejchudší, 100 = nejbohatší)')
+        
+        st.pyplot(fig)
+        plt.close(fig)
+

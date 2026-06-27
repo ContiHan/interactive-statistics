@@ -29,10 +29,8 @@ def render(topic):
         
         fig, ax = plt.subplots(figsize=(10, 8))
         
-        x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-        y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-        xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.05),
-                             np.arange(y_min, y_max, 0.05))
+        xx, yy = np.meshgrid(np.arange(-5, 15, 0.05),
+                             np.arange(-5, 15, 0.05))
         
         Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
         Z = Z.reshape(xx.shape)
@@ -44,8 +42,8 @@ def render(topic):
         ax.set_title(f'Rozhodovací strom (Hloubka: {depth})', fontsize=14, fontweight='bold')
         ax.set_xlabel('Věk (relativní metrika X)')
         ax.set_ylabel('Příjem (relativní metrika Y)')
-        ax.set_xlim(x_min, x_max)
-        ax.set_ylim(y_min, y_max)
+        ax.set_xlim(-5, 15)
+        ax.set_ylim(-5, 15)
         
         patch0 = mpatches.Patch(color='#7a93ce', label='Skupina 0 (Modrá: Ne)')
         patch1 = mpatches.Patch(color='#d67972', label='Skupina 1 (Červená: Ano)')

@@ -218,10 +218,13 @@ def render(topic):
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
         
         # Obyčejná data (Log scale for visualization since outlier is huge)
-        ax1.boxplot([group_a, group_b], labels=['Skupina A', 'Skupina B'])
+        ax1.boxplot([group_a, group_b])
+        ax1.set_xticks([1, 2])
+        ax1.set_xticklabels(['Skupina A', 'Skupina B'])
         ax1.set_title(f'Původní data (Log. měřítko)\nKlasický T-test p-hod. = {t_pval:.4f}')
         ax1.set_ylabel('Plat (Kč)')
         ax1.set_yscale('log')
+        ax1.set_ylim(10**4, 10**8)
         
         # Rankovaná data
         all_data = np.concatenate([group_a, group_b])
@@ -229,9 +232,12 @@ def render(topic):
         ranks_a = ranks[:50]
         ranks_b = ranks[50:]
         
-        ax2.boxplot([ranks_a, ranks_b], labels=['Skupina A', 'Skupina B'])
+        ax2.boxplot([ranks_a, ranks_b])
+        ax2.set_xticks([1, 2])
+        ax2.set_xticklabels(['Skupina A', 'Skupina B'])
         ax2.set_title(f'Data převedená na Pořadí (Ranky)\nMann-Whitney p-hod. = {u_pval:.4f}')
         ax2.set_ylabel('Pořadí (1 = nejchudší, 100 = nejbohatší)')
+        ax2.set_ylim(0, 105)
         
         st.pyplot(fig)
         plt.close(fig)

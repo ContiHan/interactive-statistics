@@ -142,7 +142,7 @@ def render(topic):
         plt.title('Zákon velkých čísel (Hody kostkou)')
         plt.xlabel('Počet hodů')
         plt.ylabel('Průměrná hodnota')
-        plt.xlim(0, n_flips + 10)
+        plt.xlim(0, 2010)
         plt.ylim(1.5, 5.5)
         plt.legend(loc='upper right')
         st.pyplot(fig)

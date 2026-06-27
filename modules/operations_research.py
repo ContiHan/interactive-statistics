@@ -26,8 +26,7 @@ def render(topic):
         lab_x = st.sidebar.slider('Hodin na 1 Stůl:', 1, 10, 1, 1)
         lab_y = st.sidebar.slider('Hodin na 1 Židli:', 1, 10, 2, 1)
         
-        x_max = max(mat_cap/mat_x, lab_cap/lab_x) * 1.2
-        x = np.linspace(0, x_max, 400)
+        x = np.linspace(0, 500, 400)
         
         y1 = (mat_cap - mat_x * x) / mat_y
         y2 = (lab_cap - lab_x * x) / lab_y
@@ -75,8 +74,8 @@ def render(topic):
         
         ax.plot(opt_x, opt_y, 'o', color='gold', markersize=12, markeredgecolor='black', label='OPTIMUM')
         
-        ax.set_xlim(0, x_max)
-        ax.set_ylim(0, max(mat_cap/mat_y, lab_cap/lab_y) * 1.2)
+        ax.set_xlim(0, 500)
+        ax.set_ylim(0, 500)
         ax.set_xlabel('Počet vyrobených Stolů')
         ax.set_ylabel('Počet vyrobených Židlí')
         ax.set_title(f'Optimální produkce: {opt_x:.1f} Stolů, {opt_y:.1f} Židlí\nMaximální Zisk = {max_z:.0f} Kč', fontweight='bold', fontsize=14)

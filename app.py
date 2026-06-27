@@ -56,7 +56,12 @@ topics = [
     "Analýza reziduí",
     "Dekompozice časové řady",
     "Stacionarita",
-    "Q-statistika (Míra diverzity)"
+    "Q-statistika (Míra diverzity)",
+    "Intervaly spolehlivosti",
+    "Zákon velkých čísel (LLN)",
+    "Dvouvýběrový t-test",
+    "Korelační analýza",
+    "Logistická regrese"
 ]
 
 selected_topic = st.sidebar.selectbox("Vyberte téma k vizualizaci:", topics)
@@ -554,5 +559,200 @@ elif selected_topic == "Q-statistika (Míra diverzity)":
     sns.heatmap(data, annot=True, fmt='d', cmap='RdYlGn_r',
                 xticklabels=['B Správně', 'B Chyba'], yticklabels=['A Správně', 'A Chyba'], vmin=0, vmax=100)
     plt.title(f'Matice chyb\nQ-statistika = {q_val:.3f}')
+    st.pyplot(fig)
+    plt.close(fig)
+
+elif selected_topic == "Intervaly spolehlivosti":
+    st.info("""
+    **Interval spolehlivosti (Confidence Interval)**
+    Ukazuje, jak přesný je náš odhad a s jakou jistotou v něm leží skutečná hodnota.
+    
+    *   **Příklad ze života:** Chceme zjistit průměrnou výšku mužů v ČR (skutečný průměr je černá čára, kterou ale v reálu neznáme). Změříme 100 náhodných mužů a spočítáme průměr. Protože jsme nezměřili všechny, musíme přidat "rezervu" (šířka úsečky). 
+    *   **95% hladina:** Znamená, že pokud bychom tento průzkum zopakovali 100x (což tady děláme), 95krát se skutečná výška populace trefí do naší naměřené rezervy (modrá čára) a 5krát (červená čára) budeme mít prostě smůlu na extrémní vzorek (třeba zrovna změříme partu basketbalistů).
+    """)
+    n_samples = st.sidebar.slider('Velikost každého vzorku:', 10, 200, 50, 10)
+    conf_level = st.sidebar.selectbox('Hladina spolehlivosti:', [0.90, 0.95, 0.99], index=1)
+    
+    np.random.seed(42)
+    true_mean = 0
+    true_std = 1
+    n_experiments = 100
+    
+    samples = np.random.normal(true_mean, true_std, (n_experiments, n_samples))
+    means = np.mean(samples, axis=1)
+    stds = np.std(samples, axis=1, ddof=1)
+    
+    t_crit = stats.t.ppf((1 + conf_level) / 2, df=n_samples-1)
+    margins = t_crit * (stds / np.sqrt(n_samples))
+    
+    lower_bounds = means - margins
+    upper_bounds = means + margins
+    
+    fig = plt.figure(figsize=(10, 6))
+    plt.axvline(true_mean, color='black', lw=2, linestyle='--', label='Skutečný průměr')
+    
+    for i in range(n_experiments):
+        if lower_bounds[i] <= true_mean <= upper_bounds[i]:
+            color = 'royalblue'
+        else:
+            color = 'crimson'
+        plt.plot([lower_bounds[i], upper_bounds[i]], [i, i], color=color, lw=2, alpha=0.7)
+        plt.plot(means[i], i, 'o', color=color, markersize=3)
+        
+    plt.title(f'{int(conf_level*100)}% Intervaly spolehlivosti pro {n_experiments} nezávislých vzorků')
+    plt.yticks([])
+    plt.xlim(-1.5, 1.5)
+    plt.ylim(-2, 102)
+    plt.legend(loc='upper right')
+    st.pyplot(fig)
+    plt.close(fig)
+
+elif selected_topic == "Zákon velkých čísel (LLN)":
+    st.info("""
+    **Zákon velkých čísel (Law of Large Numbers)**
+    Čím více náhodných pokusů uděláme, tím více se jejich průměr blíží očekávané teoretické hodnotě.
+    
+    *   **Příklad ze života (Hody kostkou):** Když hodíte kostkou desetkrát, průměr může být klidně 5 (protože vám padaly samé šestky). Na začátku grafu tak čára divoce skáče nahoru a dolů. Ale pokud hodíte 1000krát, průměr se nevyhnutelně usadí na teoretických 3.5 (červená čára). Kasina na tomto zákonu staví celý svůj byznys.
+    """)
+    n_flips = st.sidebar.slider('Počet hodů (N):', 10, 2000, 500, 10)
+    
+    np.random.seed(42)
+    rolls = np.random.randint(1, 7, n_flips)
+    cumulative_avg = np.cumsum(rolls) / np.arange(1, n_flips + 1)
+    
+    fig = plt.figure(figsize=(12, 6))
+    plt.plot(range(1, n_flips + 1), cumulative_avg, color='royalblue', lw=2, alpha=0.8, label='Průběžný průměr hodů')
+    plt.axhline(3.5, color='crimson', linestyle='--', lw=2, label='Teoretický průměr (3.5)')
+    
+    plt.title('Zákon velkých čísel (Hody kostkou)')
+    plt.xlabel('Počet hodů')
+    plt.ylabel('Průměrná hodnota')
+    plt.xlim(0, n_flips + 10)
+    plt.ylim(1.5, 5.5)
+    plt.legend(loc='upper right')
+    st.pyplot(fig)
+    plt.close(fig)
+
+elif selected_topic == "Dvouvýběrový t-test":
+    st.info("""
+    **Dvouvýběrový t-test**
+    Slouží k ověření, zda je rozdíl mezi dvěma skupinami skutečný, nebo jestli vznikl jen obrovskou náhodou.
+    
+    *   **Příklad ze života:** Skupina A dostala nový lék na krevní tlak, Skupina B dostala placebo (lentilku).
+    *   **Interpretace p-hodnoty:** 
+        * **Zelená (p < 0.05)**: Signifikantní rozdíl. Zvony se překrývají málo. Lék prokazatelně funguje.
+        * **Červená (p ≥ 0.05)**: Rozdíl mohl vzniknout náhodou. Zvony se překrývají příliš. Lék nefunguje o nic lépe než placebo.
+    *   **Vliv parametrů:** Když na panelu vlevo zvýšíte šum (rozptyl), zvony se rozpliznou. I když budou mít stále stejné průměry, p-hodnota přestane být signifikantní.
+    """)
+    mu1 = st.sidebar.slider('Průměr A:', 0.0, 10.0, 4.0, 0.5)
+    mu2 = st.sidebar.slider('Průměr B:', 0.0, 10.0, 5.0, 0.5)
+    sigma = st.sidebar.slider('Společný šum (Rozptyl):', 0.5, 5.0, 1.0, 0.1)
+    n_obs = st.sidebar.slider('Počet měření ve skupině:', 5, 200, 30, 5)
+    
+    np.random.seed(42)
+    group_a = np.random.normal(mu1, sigma, n_obs)
+    group_b = np.random.normal(mu2, sigma, n_obs)
+    
+    t_stat, p_val = stats.ttest_ind(group_a, group_b)
+    
+    fig = plt.figure(figsize=(10, 6))
+    x = np.linspace(-5, 15, 1000)
+    plt.plot(x, stats.norm.pdf(x, mu1, sigma), color='royalblue', lw=2, label=f'Skupina A (Teorie μ={mu1})')
+    plt.fill_between(x, stats.norm.pdf(x, mu1, sigma), alpha=0.2, color='royalblue')
+    
+    plt.plot(x, stats.norm.pdf(x, mu2, sigma), color='crimson', lw=2, label=f'Skupina B (Teorie μ={mu2})')
+    plt.fill_between(x, stats.norm.pdf(x, mu2, sigma), alpha=0.2, color='crimson')
+    
+    # Kreslení bodů naspod
+    plt.scatter(group_a, np.zeros_like(group_a) + 0.02, color='darkblue', alpha=0.5, s=20)
+    plt.scatter(group_b, np.zeros_like(group_b) + 0.04, color='darkred', alpha=0.5, s=20)
+    
+    sig_text = "SIGNIFIKANTNÍ ROZDÍL" if p_val < 0.05 else "NESIGNIFIKANTNÍ (Náhoda)"
+    title_color = 'seagreen' if p_val < 0.05 else 'firebrick'
+    
+    plt.title(f'T-test: t = {t_stat:.2f} | p-hodnota = {p_val:.4f}\n{sig_text}', color=title_color)
+    plt.xlim(-5, 15)
+    plt.ylim(0, 0.8)
+    plt.legend(loc='upper right')
+    st.pyplot(fig)
+    plt.close(fig)
+
+elif selected_topic == "Korelační analýza":
+    st.info("""
+    **Korelace (Pearsonův koeficient r)**
+    Ukazuje sílu a směr lineární závislosti dvou veličin.
+    
+    *   **Příklady ze života:**
+        * **r = 1 (Přímá úměra):** Čas strávený během a spálené kalorie. Úhledná čára nahoru.
+        * **r = -1 (Nepřímá úměra):** Čas strávený na mobilu v noci a kvalita spánku. Úhledná čára dolů.
+        * **r = 0 (Žádná závislost):** Počet snědených rohlíků a výsledek IQ testu. Náhodný shluk (brokovnice).
+    *   **Tip:** Zkuste nastavit $r = 0.6$. Všimněte si, že i středně silná korelace vypadá na pohled stále docela zmateně!
+    """)
+    r = st.sidebar.slider('Korelační koeficient (r):', -1.0, 1.0, 0.6, 0.05)
+    n_points = st.sidebar.slider('Počet bodů:', 10, 1000, 200, 10)
+    
+    np.random.seed(42)
+    cov_matrix = [[1, r], [r, 1]]
+    data = np.random.multivariate_normal([0, 0], cov_matrix, n_points)
+    x_data, y_data = data[:, 0], data[:, 1]
+    
+    fig = plt.figure(figsize=(8, 8))
+    plt.scatter(x_data, y_data, color='teal', alpha=0.6, edgecolor='w')
+    
+    # Zafixování os a přidání mřížky pro lepší vnímání rotace mračna
+    plt.xlim(-4, 4)
+    plt.ylim(-4, 4)
+    plt.axhline(0, color='black', lw=1, ls='--')
+    plt.axvline(0, color='black', lw=1, ls='--')
+    plt.title(f'Korelační analýza (Pearson r = {r:.2f})')
+    st.pyplot(fig)
+    plt.close(fig)
+
+elif selected_topic == "Logistická regrese":
+    st.info("""
+    **Logistická regrese**
+    Modeluje pravděpodobnost, že objekt patří do určité kategorie (Třída 0 nebo 1). Na rozdíl od lineární regrese se predikce bezpečně vlní od 0 % do 100 % (S-křivka).
+    
+    *   **Příklad ze života:** Snažíme se předpovědět, zda student složí zkoušku (Ano/Ne), na základě počtu hodin učení (osa X).
+        * **Modré body (Dole):** Studenti, co zkoušku neudělali.
+        * **Červené body (Nahoře):** Studenti, co zkoušku udělali.
+        * **Černá S-křivka:** Ukazuje plynulou *pravděpodobnost* složení zkoušky v závislosti na čase učení.
+    *   **Rozhodovací hranice (50 %):** Místo, od kterého už model říká "Tenhle student to pravděpodobně zvládne".
+    """)
+    sep = st.sidebar.slider('Vzdálenost tříd (Oddělitelnost):', 0.0, 10.0, 3.0, 0.5)
+    
+    np.random.seed(42)
+    n_points = 100
+    # X hodnoty pro Třídu 0 (kolem 3) a Třídu 1 (kolem 3 + sep)
+    X_0 = np.random.normal(3, 1.5, n_points)
+    X_1 = np.random.normal(3 + sep, 1.5, n_points)
+    
+    X_all = np.concatenate([X_0, X_1])
+    y_all = np.concatenate([np.zeros(n_points), np.ones(n_points)])
+    
+    # Jednoduchá logistická křivka (fit the model via sklearn)
+    from sklearn.linear_model import LogisticRegression
+    model = LogisticRegression()
+    model.fit(X_all.reshape(-1, 1), y_all)
+    
+    X_test = np.linspace(-5, 20, 300).reshape(-1, 1)
+    y_prob = model.predict_proba(X_test)[:, 1]
+    
+    fig = plt.figure(figsize=(10, 6))
+    plt.scatter(X_0, np.zeros(n_points) + 0.02, color='royalblue', alpha=0.6, label='Třída 0 (Ne)')
+    plt.scatter(X_1, np.ones(n_points) - 0.02, color='crimson', alpha=0.6, label='Třída 1 (Ano)')
+    
+    plt.plot(X_test, y_prob, color='black', lw=3, label='Logistická křivka (Pravděpodobnost Třídy 1)')
+    plt.axhline(0.5, color='gray', linestyle='--', label='Rozhodovací hranice (50 %)')
+    
+    boundary = -model.intercept_[0] / model.coef_[0][0] if model.coef_[0][0] != 0 else 0
+    plt.axvline(boundary, color='gray', linestyle=':')
+    
+    plt.title('Logistická regrese (Klasifikace)')
+    plt.xlabel('Závislá proměnná (X)')
+    plt.ylabel('Pravděpodobnost (0 až 1)')
+    plt.xlim(-2, 15)
+    plt.ylim(-0.1, 1.1)
+    plt.legend(loc='center left')
     st.pyplot(fig)
     plt.close(fig)
